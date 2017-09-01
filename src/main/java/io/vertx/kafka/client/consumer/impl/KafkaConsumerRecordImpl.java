@@ -18,6 +18,7 @@ package io.vertx.kafka.client.consumer.impl;
 
 import io.vertx.kafka.client.consumer.KafkaConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.record.TimestampType;
 
 /**
@@ -39,6 +40,11 @@ public class KafkaConsumerRecordImpl<K, V> implements KafkaConsumerRecord<K, V> 
   @Override
   public String topic() {
     return this.record.topic();
+  }
+
+  @Override
+  public Headers headers() {
+    return this.record.headers();
   }
 
   @Override

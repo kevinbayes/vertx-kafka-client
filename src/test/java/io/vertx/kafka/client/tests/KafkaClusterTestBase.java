@@ -16,7 +16,6 @@
 
 package io.vertx.kafka.client.tests;
 
-import io.debezium.kafka.KafkaCluster;
 import io.debezium.util.Testing;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -27,6 +26,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Base class for tests providing a Kafka cluster
@@ -41,6 +41,7 @@ public class KafkaClusterTestBase extends KafkaTestBase {
     if (kafkaCluster != null) {
       throw new IllegalStateException();
     }
+
     dataDir = Testing.Files.createTestingDirectory("cluster");
     kafkaCluster = new KafkaCluster().usingDirectory(dataDir).withPorts(2181, 9092);
     return kafkaCluster;
@@ -48,7 +49,14 @@ public class KafkaClusterTestBase extends KafkaTestBase {
 
   @BeforeClass
   public static void setUp(TestContext ctx) throws IOException {
-    kafkaCluster = kafkaCluster().deleteDataPriorToStartup(true).addBrokers(1).startup();
+
+    kafkaCluster = kafkaCluster().deleteDataPriorToStartup(true).addBrokers(1);
+
+    final Properties properties = new Properties();
+    properties.setProperty("offsets.topic.replication.factor", "1");
+
+    kafkaCluster.withKafkaConfiguration(properties)
+      .startup();
   }
 
 

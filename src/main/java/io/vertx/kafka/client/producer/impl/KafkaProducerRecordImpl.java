@@ -18,6 +18,8 @@ package io.vertx.kafka.client.producer.impl;
 
 import io.vertx.kafka.client.producer.KafkaProducerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.Headers;
 
 /**
  * Vert.x Kafka producer record implementation
@@ -40,6 +42,23 @@ public class KafkaProducerRecordImpl<K, V> implements KafkaProducerRecord<K, V> 
     this.record = new ProducerRecord<>(topic, partition, timestamp, key, value);
   }
 
+
+  /**
+   * Constructor
+   *
+   * @param topic the topic this record is being sent to
+   * @param key the key (or null if no key is specified)
+   * @param value the value
+   * @param timestamp the timestamp of this record
+   * @param partition the partition to which the record will be sent (or null if no partition was specified)
+   * @param headers the headers that will be included in the record
+   */
+  public KafkaProducerRecordImpl(String topic, K key, V value, Long timestamp, Integer partition, Iterable<Header> headers) {
+
+    this.record = new ProducerRecord<>(topic, partition, timestamp, key, value, headers);
+  }
+
+
   /**
    * Constructor
    *
@@ -51,6 +70,20 @@ public class KafkaProducerRecordImpl<K, V> implements KafkaProducerRecord<K, V> 
   public KafkaProducerRecordImpl(String topic, K key, V value, Integer partition) {
 
     this.record = new ProducerRecord<>(topic, partition, key, value);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param topic the topic this record is being sent to
+   * @param key the key (or null if no key is specified)
+   * @param value the value
+   * @param partition the partition to which the record will be sent (or null if no partition was specified)
+   * @param headers the headers that will be included in the record
+   */
+  public KafkaProducerRecordImpl(String topic, K key, V value, Integer partition, Iterable<Header> headers) {
+
+    this.record = new ProducerRecord<>(topic, partition, key, value, headers);
   }
 
   /**
@@ -79,6 +112,11 @@ public class KafkaProducerRecordImpl<K, V> implements KafkaProducerRecord<K, V> 
   @Override
   public String topic() {
     return this.record.topic();
+  }
+
+  @Override
+  public Headers headers() {
+    return this.record.headers();
   }
 
   @Override

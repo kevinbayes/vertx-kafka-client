@@ -23,11 +23,17 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.kafka.client.producer.KafkaWriteStream;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -69,6 +75,37 @@ public class ProducerTest extends KafkaClusterTestBase {
       int count = seq.getAndIncrement();
       ctx.assertEquals("key-" + count, key);
       ctx.assertEquals("value-" + count, value);
+      return true;
+    });
+  }
+
+
+  @Test
+  public void testProduceWithHeaders(TestContext ctx) throws Exception {
+    String topicName = "testProduce";
+    Properties config = kafkaCluster.useTo().getProducerProperties("testProduce_producer");
+    config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    producer = producer(Vertx.vertx(), config);
+    producer.exceptionHandler(ctx::fail);
+    int numMessages = 100000;
+
+    for (int i = 0;i < numMessages;i++) {
+
+      List<Header> headers = new ArrayList<>();
+
+      Header header = new RecordHeader("key", new byte[]{(byte)i});
+      headers.add(header);
+
+      producer.write(new ProducerRecord<>(topicName, 0, "key-" + i, "value-" + i, headers));
+    }
+    Async done = ctx.async();
+    AtomicInteger seq = new AtomicInteger();
+    kafkaCluster.useTo().consumeStrings(topicName, numMessages, 10, TimeUnit.SECONDS, done::complete, (record) -> {
+      int count = seq.getAndIncrement();
+      ctx.assertEquals("key-" + count, record.key());
+      ctx.assertEquals("value-" + count, record.value());
+      ctx.assertEquals((byte)count, record.headers().lastHeader("key").value()[0]);
       return true;
     });
   }

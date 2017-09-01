@@ -19,6 +19,7 @@ package io.vertx.kafka.client.consumer;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.record.TimestampType;
 
 /**
@@ -31,6 +32,12 @@ public interface KafkaConsumerRecord<K, V> {
    * @return  the topic this record is received from
    */
   String topic();
+
+  /**
+   * @return The headers
+   */
+  @GenIgnore
+  Headers headers();
 
   /**
    * @return  the partition from which this record is received
